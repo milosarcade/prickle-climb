@@ -65,6 +65,9 @@ kbd{font-family:var(--display);font-size:14px;background:var(--paper);border:2.5
 .warprow input,.warprow select{font-family:var(--display);font-size:22px;color:var(--ink);background:var(--paper);border:3px solid var(--ink);border-radius:12px;box-shadow:0 3px 0 var(--ink);padding:4px 10px;width:6ch}
 .warprow select{width:auto}
 .warprow input:focus-visible,.warprow select:focus-visible{outline:4px solid var(--sky);outline-offset:2px}
+/* touch screens held upright: a hint that never blocks taps */
+.rotate{display:none;position:absolute;left:50%;bottom:max(14px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;margin:0;pointer-events:none;white-space:nowrap;font-family:var(--display);font-size:14px;letter-spacing:.04em;background:var(--ink);color:var(--lemon);border-radius:999px;padding:5px 14px}
+@media (pointer:coarse) and (orientation:portrait){ .rotate{display:block} }
 .test{font-family:var(--display);font-size:13px;letter-spacing:.08em;background:var(--ink);color:var(--lemon);border-radius:999px;padding:2px 10px}
 @media (max-width:520px){ .panel{padding-inline:18px} .tag{font-size:15px} }
 @media (prefers-reduced-motion: reduce){ .btn,.card{transition:none} h1{transform:none} }
@@ -73,6 +76,7 @@ kbd{font-family:var(--display);font-size:14px;background:var(--paper);border:2.5
 <body>
 <div id="stage">
   <canvas id="game" width="960" height="640" aria-label="Prickle Climb game screen"></canvas>
+  <p class="rotate">Turn your phone sideways for a bigger screen</p>
 
   <div class="overlay" id="ovTitle">
     <div class="panel">
@@ -1477,6 +1481,15 @@ function drawTouch(){
   ctx.save();ctx.globalAlpha=0.8;
   circ(ctx,DASHB.x,DASHB.y,DASHB.r);ctx.fillStyle=G.p.dashCd<=0?'rgba(94,230,176,.35)':'rgba(255,255,255,.12)';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(43,29,51,.8)';ctx.stroke();
   otext('DASH',DASHB.x,DASHB.y+6,17,'#fffaf0');
+  // pause and mute, touch only: the keyboard has P and M
+  for(const b of [PAUSEB,MUTEB]){circ(ctx,b.x,b.y,b.r);ctx.fillStyle='rgba(255,255,255,.12)';ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(43,29,51,.8)';ctx.stroke();}
+  ctx.fillStyle='#fffaf0';ctx.strokeStyle=INK;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';
+  for(const dx of [-7,2]){rr(ctx,PAUSEB.x+dx,PAUSEB.y-8,5,16,2);ctx.fill();ctx.stroke();}
+  ctx.beginPath();ctx.moveTo(MUTEB.x-10,MUTEB.y-4);ctx.lineTo(MUTEB.x-5,MUTEB.y-4);ctx.lineTo(MUTEB.x+1,MUTEB.y-9);ctx.lineTo(MUTEB.x+1,MUTEB.y+9);ctx.lineTo(MUTEB.x-5,MUTEB.y+4);ctx.lineTo(MUTEB.x-10,MUTEB.y+4);ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.strokeStyle='#fffaf0';ctx.lineWidth=2.5;ctx.beginPath();
+  if(muted){ctx.moveTo(MUTEB.x+5,MUTEB.y-4);ctx.lineTo(MUTEB.x+12,MUTEB.y+4);ctx.moveTo(MUTEB.x+12,MUTEB.y-4);ctx.lineTo(MUTEB.x+5,MUTEB.y+4);}
+  else{ctx.arc(MUTEB.x+2,MUTEB.y,6,-0.9,0.9);ctx.moveTo(MUTEB.x+2+10*Math.cos(-0.9),MUTEB.y+10*Math.sin(-0.9));ctx.arc(MUTEB.x+2,MUTEB.y,10,-0.9,0.9);}
+  ctx.stroke();
   for(const s of [touch.L,touch.R]){
     if(!s)continue;
     circ(ctx,s.ox,s.oy,48);ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=3;ctx.stroke();
@@ -1560,7 +1573,7 @@ function resume(){if(G&&G.mode==='paused'){G.mode='play';show(null);}}
 
 /* ---------- input ---------- */
 const keys={},mouse={x:W/2,y:H/2,down:false,moved:false},touch={L:null,R:null};
-const DASHB={x:W-74,y:H-104,r:36};
+const DASHB={x:W-74,y:H-104,r:36},PAUSEB={x:W-44,y:82,r:19},MUTEB={x:W-92,y:82,r:19};
 let dashPressed=false,autoFire=false,isTouch=false;
 function toGame(cx,cy){const r=cv.getBoundingClientRect();return {x:(cx-r.left)/r.width*W,y:(cy-r.top)/r.height*H};}
 
@@ -1605,6 +1618,8 @@ cv.addEventListener('touchstart',e=>{
   if(!G||G.mode!=='play')return;
   for(const t of e.changedTouches){
     const p=toGame(t.clientX,t.clientY);
+    if(Math.hypot(p.x-PAUSEB.x,p.y-PAUSEB.y)<PAUSEB.r+6){touch.L=touch.R=null;pause();return;}
+    if(Math.hypot(p.x-MUTEB.x,p.y-MUTEB.y)<MUTEB.r+6){muted=!muted;continue;}
     if(Math.hypot(p.x-DASHB.x,p.y-DASHB.y)<DASHB.r+10){dashPressed=true;continue;}
     if(p.x<W/2&&!touch.L)touch.L={id:t.identifier,ox:p.x,oy:p.y,x:p.x,y:p.y};
     else if(p.x>=W/2&&!touch.R)touch.R={id:t.identifier,ox:p.x,oy:p.y,x:p.x,y:p.y};

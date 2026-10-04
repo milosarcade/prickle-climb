@@ -19,7 +19,9 @@ Play it: https://milosarcade.com/prickle-climb/
 | P | Pause |
 | M | Mute sound |
 
-On a phone: left thumb moves, right thumb aims and fires, tap DASH to dodge.
+On a phone or tablet: left thumb moves, right thumb aims and fires, tap DASH
+to dodge. Pause and mute buttons appear in the top right corner once you
+touch the screen.
 
 ## How it works
 

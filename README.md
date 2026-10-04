@@ -4,6 +4,8 @@ A twin-stick arcade shooter. Every floor is three rooms full of
 spike-spitting critters. Clear them, find the ladder and climb higher.
 See how many rooms you can clear before you get squashed.
 
+Play it: https://milosarcade.com/prickle-climb/
+
 ## Controls
 
 | Key | Action |
